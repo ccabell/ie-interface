@@ -1,0 +1,23 @@
+{
+  "installCommand": "npm install --force",
+  "rewrites": [
+    { "source": "/api/runs", "destination": "https://prompt-runner-production.up.railway.app/runs" },
+    { "source": "/api/runs/:path*", "destination": "https://prompt-runner-production.up.railway.app/runs/:path*" },
+    { "source": "/api/agents", "destination": "https://prompt-runner-production.up.railway.app/agents" },
+    { "source": "/api/agents/:path*", "destination": "https://prompt-runner-production.up.railway.app/agents/:path*" },
+    { "source": "/api/transcripts", "destination": "https://prompt-runner-production.up.railway.app/transcripts" },
+    { "source": "/api/transcripts/:path*", "destination": "https://prompt-runner-production.up.railway.app/transcripts/:path*" },
+    { "source": "/api/opportunities", "destination": "https://prompt-runner-production.up.railway.app/opportunities" },
+    { "source": "/api/opportunities/:path*", "destination": "https://prompt-runner-production.up.railway.app/opportunities/:path*" },
+    { "source": "/api/run_downstream", "destination": "https://prompt-runner-production.up.railway.app/run_downstream" },
+    { "source": "/api/run_downstream/:path*", "destination": "https://prompt-runner-production.up.railway.app/run_downstream/:path*" },
+    { "source": "/api/run_extraction", "destination": "https://prompt-runner-production.up.railway.app/run_extraction" },
+    { "source": "/api/prompt_sets", "destination": "https://prompt-runner-production.up.railway.app/prompt_sets" },
+    { "source": "/api/prompt_sets/:path*", "destination": "https://prompt-runner-production.up.railway.app/prompt_sets/:path*" },
+    { "source": "/api/prompt_templates", "destination": "https://prompt-runner-production.up.railway.app/prompt_templates" },
+    { "source": "/api/prompt_templates/:path*", "destination": "https://prompt-runner-production.up.railway.app/prompt_templates/:path*" },
+    { "source": "/api/practices", "destination": "https://prompt-runner-production.up.railway.app/practices" },
+    { "source": "/api/practices/:path*", "destination": "https://prompt-runner-production.up.railway.app/practices/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+vite.config.js
+vite.config.d.ts
+
+# Env and secrets
+.env
+.env.local
+.env.*.local
+
+# TypeScript build info
+*.tsbuildinfo
+
+# IDE / OS
+.vite/
+*.log
+.DS_Store
+.vercel
