@@ -118,43 +118,62 @@ export function Simulator() {
   // Fetch all options on mount
   useEffect(() => {
     const load = async () => {
-      const [setsRes, templatesRes, transcriptsRes, runsRes, practicesRes] = await Promise.allSettled([
-        apiClient.get('/prompt_sets'),
-        apiClient.get('/prompt_templates'),
-        apiClient.get('/transcripts'),
-        apiClient.get('/runs'),
-        apiClient.get('/practices'),
-      ]);
+      try {
+        // Fetch all data in parallel
+        const [setsRes, templatesRes, transcriptsRes, runsRes, practicesRes] = await Promise.all([
+          apiClient.get('/prompt_sets').catch((e) => { console.error('Failed to fetch prompt_sets:', e); return { data: { data: [] } }; }),
+          apiClient.get('/prompt_templates').catch((e) => { console.error('Failed to fetch prompt_templates:', e); return { data: { data: [] } }; }),
+          apiClient.get('/transcripts').catch((e) => { console.error('Failed to fetch transcripts:', e); return { data: { data: [] } }; }),
+          apiClient.get('/runs').catch((e) => { console.error('Failed to fetch runs:', e); return { data: { data: [] } }; }),
+          apiClient.get('/practices').catch((e) => { console.error('Failed to fetch practices:', e); return { data: { data: [] } }; }),
+        ]);
 
-      const unwrap = (res: PromiseSettledResult<{ data: unknown }>) => {
-        if (res.status !== 'fulfilled') return [];
-        const d = res.value.data;
-        return Array.isArray(d) ? d : (d as Record<string, unknown>)?.data ?? [];
-      };
+        // Helper to extract array from response (handles { data: [...] } structure)
+        const extractArray = (response: { data: unknown }): unknown[] => {
+          const body = response.data;
+          if (Array.isArray(body)) return body;
+          if (body && typeof body === 'object' && 'data' in body) {
+            const inner = (body as { data: unknown }).data;
+            return Array.isArray(inner) ? inner : [];
+          }
+          return [];
+        };
 
-      setPromptSets(unwrap(setsRes) as PromptSetOption[]);
-      setPromptTemplates(unwrap(templatesRes) as PromptTemplateOption[]);
-      setPractices(unwrap(practicesRes) as PracticeOption[]);
+        console.log('[Simulator] Raw responses:', { setsRes, templatesRes, transcriptsRes, runsRes, practicesRes });
 
-      const txList = unwrap(transcriptsRes) as Record<string, unknown>[];
-      setTranscripts(
-        txList.map((t) => ({
-          id: (t.id ?? t.transcript_id) as string,
-          label:
-            `#${t.consult_number ?? '?'} — ${t.clinic ?? 'Unknown'}` +
-            (t.duration_minutes ? ` (${Math.round(t.duration_minutes as number)}m)` : '') +
-            (t.transcript_summary
-              ? ` — ${(t.transcript_summary as string).slice(0, 80)}…`
-              : ''),
-          consult_number: t.consult_number as number,
-          clinic: t.clinic as string,
-          transcript_summary: t.transcript_summary as string,
-          duration_minutes: t.duration_minutes as number,
-          consult_type: t.consult_type as string,
-        })),
-      );
+        const sets = extractArray(setsRes) as PromptSetOption[];
+        const templates = extractArray(templatesRes) as PromptTemplateOption[];
+        const practices = extractArray(practicesRes) as PracticeOption[];
+        const txList = extractArray(transcriptsRes) as Record<string, unknown>[];
+        const runsList = extractArray(runsRes) as RunOption[];
 
-      setRuns(unwrap(runsRes) as RunOption[]);
+        console.log('[Simulator] Extracted data:', { sets: sets.length, templates: templates.length, practices: practices.length, transcripts: txList.length, runs: runsList.length });
+
+        setPromptSets(sets);
+        setPromptTemplates(templates);
+        setPractices(practices);
+        setRuns(runsList);
+
+        setTranscripts(
+          txList.map((t) => ({
+            id: (t.id ?? t.transcript_id) as string,
+            label:
+              `#${t.consult_number ?? '?'} — ${t.clinic ?? 'Unknown'}` +
+              (t.duration_minutes ? ` (${Math.round(t.duration_minutes as number)}m)` : '') +
+              (t.transcript_summary
+                ? ` — ${(t.transcript_summary as string).slice(0, 80)}…`
+                : ''),
+            consult_number: t.consult_number as number,
+            clinic: t.clinic as string,
+            transcript_summary: t.transcript_summary as string,
+            duration_minutes: t.duration_minutes as number,
+            consult_type: t.consult_type as string,
+          })),
+        );
+      } catch (e) {
+        console.error('[Simulator] Failed to load data:', e);
+        setError(`Failed to load data: ${(e as Error).message}`);
+      }
     };
     load();
   }, []);

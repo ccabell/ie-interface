@@ -19,3 +19,7 @@ vite.config.d.ts
 *.log
 .DS_Store
 .vercel
+
+# Temp files
+tmpclaude-*
+test-*.mjs
