@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A360 Card System Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    h1 { color: #1976d2; margin-bottom: 8px; }
+    .subtitle { color: #666; margin-bottom: 24px; }
+    .section { margin-bottom: 32px; }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .grid { display: grid; gap: 16px; }
+    .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+    .grid-1 { grid-template-columns: 1fr; }
+    .card {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card-type {
+      display: inline-block;
+      background: #e3f2fd;
+      color: #1976d2;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-family: monospace;
+    }
+    .card-title { font-weight: 600; margin-bottom: 4px; }
+    .card-subtitle { color: #666; font-size: 13px; }
+    .stat-value { font-size: 28px; font-weight: 600; color: #1976d2; }
+    .stat-label { font-size: 13px; color: #666; }
+    .chip {
+      display: inline-block;
+      background: #1976d2;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      margin: 2px;
+    }
+    .chip.secondary { background: #f5f5f5; color: #333; border: 1px solid #ddd; }
+    .chip.success { background: #4caf50; }
+    .chip.warning { background: #ff9800; }
+    .progress-bar {
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-fill { height: 100%; border-radius: 4px; }
+    .progress-fill.high { background: #4caf50; }
+    .progress-fill.medium { background: #ff9800; }
+    .progress-fill.low { background: #f44336; }
+    .quote {
+      border-left: 3px solid #1976d2;
+      padding-left: 12px;
+      font-style: italic;
+      color: #555;
+    }
+    .quote-speaker { font-size: 12px; color: #888; margin-top: 4px; font-style: normal; }
+    .list-item { padding: 4px 0; }
+    .list-item::before { content: "✓ "; color: #4caf50; }
+    .kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
+    .kv-key { color: #666; }
+    .kv-value { font-weight: 500; }
+    .status-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .status-addressed { background: #e8f5e9; color: #2e7d32; }
+    .status-not-addressed { background: #ffebee; color: #c62828; }
+    .status-receptive { background: #e8f5e9; color: #2e7d32; }
+    .status-considering { background: #fff3e0; color: #e65100; }
+    .status-hesitant { background: #fce4ec; color: #c2185b; }
+    .timeline-item { display: flex; gap: 12px; padding: 8px 0; }
+    .timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #1976d2; margin-top: 4px; flex-shrink: 0; }
+    .timeline-dot.completed { background: #4caf50; }
+    .timeline-dot.pending { background: #bdbdbd; }
+    .product-item { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .product-item:last-child { border-bottom: none; }
+    .objection-item { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .type-tag { font-size: 10px; font-weight: 600; color: #666; text-transform: uppercase; }
+    .code-block {
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>A360 Config-Driven Card System</h1>
+  <p class="subtitle">AI outputs <code>{ cardType, props }</code> → Renderer maps to UI components</p>
+
+  <!-- STATISTICS -->
+  <div class="section">
+    <div class="section-title">cardType: "statistic"</div>
+    <div class="two-col">
+      <div class="grid grid-4">
+        <div class="card">
+          <div class="card-type">statistic</div>
+          <div class="stat-label">Visit Type</div>
+          <div class="stat-value">New Patient</div>
+        </div>
+        <div class="card">
+          <div class="card-type">statistic</div>
+          <div class="stat-label">Duration</div>
+          <div class="stat-value">45 min</div>
+        </div>
+        <div class="card">
+          <div class="card-type">statistic</div>
+          <div class="stat-label">Services</div>
+          <div class="stat-value">4</div>
+        </div>
+        <div class="card">
+          <div class="card-type">statistic</div>
+          <div class="stat-label">Status</div>
+          <div class="stat-value">Booked</div>
+        </div>
+      </div>
+      <div class="code-block">{ "cardType": "statistic", "props": { "label": "Visit Type", "value": "New Patient" } }</div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="section">
+    <div class="section-title">cardType: "summary"</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-type">summary</div>
+        <div class="card-title">Consultation Summary</div>
+        <div class="card-subtitle">Patient presented for initial consultation regarding anti-aging treatments. Strong interest in Botox for forehead lines and crow's feet. Discussed filler options. Motivated by upcoming wedding. Budget concerns addressed with payment plan. Scheduled Botox for next week.</div>
+      </div>
+      <div class="code-block">{
+  "cardType": "summary",
+  "props": {
+    "title": "Consultation Summary",
+    "description": "Patient presented for..."
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- VALUE ACCORDION -->
+  <div class="section">
+    <div class="section-title">cardType: "valueAccordion"</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-type">valueAccordion</div>
+        <div class="card-title">Commitment Level</div>
+        <div class="stat-value">85%</div>
+        <div class="progress-bar"><div class="progress-fill high" style="width: 85%"></div></div>
+      </div>
+      <div class="code-block">{ "cardType": "valueAccordion", "props": { "title": "Commitment Level", "value": 85 } }</div>
+    </div>
+  </div>
+
+  <!-- CONCERNS -->
+  <div class="section">
+    <div class="section-title">cardType: "concerns"</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-type">concerns</div>
+        <div class="card-title">Concerns</div>
+        <div style="margin-top: 8px;">
+          <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Primary</div>
+          <span class="chip">Forehead lines</span>
+          <span class="chip">Crow's feet</span>
+          <span class="chip">Frown lines</span>
+        </div>
+        <div style="margin-top: 12px;">
+          <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Secondary</div>
+          <span class="chip secondary">Nasolabial folds</span>
+          <span class="chip secondary">Volume loss</span>
+        </div>
+      </div>
+      <div class="code-block">{
+  "cardType": "concerns",
+  "props": {
+    "primary": ["Forehead lines", "Crow's feet"],
+    "secondary": ["Nasolabial folds"]
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- AREAS -->
+  <div class="section">
+    <div class="section-title">cardType: "areas"</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-type">areas</div>
+        <div class="card-title">Treatment Areas</div>
+        <div style="margin-top: 8px;">
+          <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Treatment Areas</div>
+          <span class="chip success">Forehead</span>
+          <span class="chip success">Glabella</span>
+          <span class="chip success">Periorbital</span>
+        </div>
+        <div style="margin-top: 12px;">
+          <div style="font-size: 11px; color: #666; margin-bottom: 4px;">Concern Areas</div>
+          <span class="chip warning">Upper face</span>
+          <span class="chip warning">Mid face</span>
+        </div>
+      </div>
+      <div class="code-block">{
+  "cardType": "areas",
+  "props": {
+    "treatmentAreas": ["Forehead", "Glabella"],
+    "concernAreas": ["Upper face"]
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- PATIENT GOALS -->
+  <div class="section">
+    <div class="section-title">cardType: "patientGoals"</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-type">patientGoals</div>
+        <div class="card-title">Patient Goals</div>
+        <div style="margin-top: 8px;">
+          <div style="font-size: 11px; color: #666;">Goals</div>
+          <div class="list-item">Look refreshed for wedding</div>
+          <div class="list-item">Natural-looking results</div>
+        </div>
+        <div style="margin-top: 8px;">
+          <div style="font-size: 11px; color: #666;">Stated Interests</div>
+          <span class="chip secondary">Botox</span>
+          <span class="chip secondary">Juvederm</span>
+        </div>
+      </div>
+      <div class="code-block">{
+  "cardType": "patientGoals",
+  "props": {
+    "goals": ["Look refreshed for wedding"],
+    "anticipatedOutcomes": ["Smoother forehead"],
+    "statedInterests": ["Botox", "Juvederm"]
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- EVIDENCE -->
+  <div class="section">
+    <div class="section-title">cardType: "evidence"</div>
+    <div class="two-col">
+      <div class="grid grid-3">
+        <div class="card" style="border-left: 3px solid #1976d2;">
+          <div class="card-type">evidence</div>
+          <div class="quote">"I want to look refreshed for my daughter's wedding in 6 weeks."</div>
+          <div class="quote-speaker">— Patient</div>
+        </div>
+        <div class="card" style="border-left: 3px solid #1976d2;">
+          <div class="card-type">evidence</div>
+          <div class="quote">"I think we should start with Botox in the forehead."</div>
+          <div class="quote-speaker">— Provider</div>
+        </div>
+      </div>
+      <div class="code-block">{ "cardType": "evidence", "props": { "quote": "I want to look...", "speaker": "Patient" } }</div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS/SERVICES -->
+  <div class="section">
+    <div class="section-title">cardType: "productsServices"</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-type">productsServices</div>
+        <div class="product-item">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong>Botox</strong>
+            <span class="status-tag status-receptive">Recommended - receptive</span>
+          </div>
+          <div style="font-size: 12px; color: #666; margin-top: 4px;">Forehead, Glabella • 40 units</div>
+          <div style="font-size: 12px; color: #888; font-style: italic; margin-top: 4px;">"I've been wanting to try Botox"</div>
+        </div>
+        <div class="product-item">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong>Juvederm Voluma</strong>
+            <span class="status-tag status-considering">Discussed - considering</span>
+          </div>
+          <div style="font-size: 12px; color: #666; margin-top: 4px;">Cheeks</div>
+        </div>
+        <div class="product-item">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong>HydraFacial</strong>
+            <span class="status-tag status-hesitant">Mentioned - hesitant</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-block">{
+  "cardType": "productsServices",
+  "props": {
+    "items": [
+      { "title": "Botox",
+        "status": "Recommended - receptive",
+        "area": "Forehead",
+        "quantity": "40 units",
+        "snippet": "I've been wanting..." }
+    ],
+    "potentialValue": "$2,450"
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- OBJECTIONS -->
+  <div class="section">
+    <div class="section-title">cardType: "objections"</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-type">objections</div>
+        <div class="objection-item">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span class="type-tag">Objection</span>
+              <strong style="margin-left: 8px;">Budget concerns</strong>
+            </div>
+            <span class="status-tag status-addressed">Addressed</span>
+          </div>
+          <div style="font-size: 12px; color: #888; font-style: italic; margin-top: 4px;">"I'm not sure I can afford this"</div>
+          <div style="font-size: 12px; color: #4caf50; margin-top: 4px;">→ Offered CareCredit 0% financing</div>
+        </div>
+        <div class="objection-item">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span class="type-tag">Hesitation</span>
+              <strong style="margin-left: 8px;">Fear of looking frozen</strong>
+            </div>
+            <span class="status-tag status-addressed">Resolved</span>
+          </div>
+        </div>
+        <div class="objection-item">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span class="type-tag">Concern</span>
+              <strong style="margin-left: 8px;">Downtime before event</strong>
+            </div>
+            <span class="status-tag status-not-addressed">Not addressed</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-block">{
+  "cardType": "objections",
+  "props": {
+    "items": [
+      { "type": "Objection",
+        "status": "Addressed",
+        "title": "Budget concerns",
+        "snippet": "I'm not sure...",
+        "coachingResponse": "Offered..." }
+    ]
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- NEXT STEPS -->
+  <div class="section">
+    <div class="section-title">cardType: "nextSteps"</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-type">nextSteps</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+          <div style="display: flex; justify-content: space-between;">
+            <strong>Botox appointment</strong>
+            <span style="color: #4caf50;">✓</span>
+          </div>
+          <div style="font-size: 12px; color: #666;">Next Tuesday 2pm • Front desk</div>
+        </div>
+        <div style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+          <strong>Send pre-treatment instructions</strong>
+          <div style="font-size: 12px; color: #666;">3 days before • MA</div>
+        </div>
+        <div style="padding: 8px 0;">
+          <strong>Follow-up call</strong>
+          <div style="font-size: 12px; color: #666;">2 weeks post • Provider</div>
+        </div>
+      </div>
+      <div class="code-block">{
+  "cardType": "nextSteps",
+  "props": {
+    "items": [
+      { "title": "Botox appointment",
+        "when": "Next Tuesday 2pm",
+        "owner": "Front desk",
+        "isCompleted": true }
+    ]
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="section">
+    <div class="section-title">cardType: "timeline"</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-type">timeline</div>
+        <div class="card-title">Treatment Journey</div>
+        <div class="timeline-item">
+          <div class="timeline-dot completed"></div>
+          <div><strong>Initial Consultation</strong><div style="font-size: 12px; color: #666;">Discussed goals and treatment plan</div></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div><strong>Botox Treatment</strong><div style="font-size: 12px; color: #666;">Next Tuesday • 40 units</div></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot pending"></div>
+          <div><strong>2-Week Follow-up</strong><div style="font-size: 12px; color: #666;">Assess results</div></div>
+        </div>
+      </div>
+      <div class="code-block">{
+  "cardType": "timeline",
+  "props": {
+    "title": "Treatment Journey",
+    "events": [
+      { "title": "Initial Consultation",
+        "description": "Discussed goals",
+        "status": "completed" }
+    ]
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- GENERIC: LIST, KEY-VALUE, CHIPS -->
+  <div class="section">
+    <div class="section-title">Generic Cards: list, keyValue, chips</div>
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="card-type">list</div>
+        <div class="card-title">Treatment Benefits</div>
+        <div class="list-item">Natural-looking results</div>
+        <div class="list-item">Minimal downtime</div>
+        <div class="list-item">FDA approved</div>
+        <div class="list-item">Results last 3-4 months</div>
+      </div>
+      <div class="card">
+        <div class="card-type">keyValue</div>
+        <div class="card-title">Patient Profile</div>
+        <div class="kv-row"><span class="kv-key">Age</span><span class="kv-value">42</span></div>
+        <div class="kv-row"><span class="kv-key">Skin Type</span><span class="kv-value">Fitzpatrick III</span></div>
+        <div class="kv-row"><span class="kv-key">Allergies</span><span class="kv-value">None</span></div>
+      </div>
+      <div class="card">
+        <div class="card-type">chips</div>
+        <div class="card-title">Treatment Areas</div>
+        <div style="margin-top: 8px;">
+          <span class="chip">Forehead</span>
+          <span class="chip">Glabella</span>
+          <span class="chip">Crow's Feet</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL JSON EXAMPLE -->
+  <div class="section">
+    <div class="section-title">Full PageLayout JSON Structure</div>
+    <div class="code-block" style="max-height: 400px; overflow: auto;">{
+  "sections": [
+    {
+      "id": "stats",
+      "title": "Statistics Row",
+      "fields": [
+        { "cardType": "statistic", "props": { "label": "Visit Type", "value": "New Patient" } },
+        { "cardType": "statistic", "props": { "label": "Duration", "value": "45 min" } }
+      ]
+    },
+    {
+      "id": "summary",
+      "title": "Summary",
+      "fields": [
+        { "cardType": "summary", "grid": { "xs": 12, "md": 8 }, "props": { "title": "Consultation Summary", "description": "..." } },
+        { "cardType": "valueAccordion", "grid": { "xs": 12, "md": 4 }, "props": { "title": "Commitment Level", "value": 85 } }
+      ]
+    }
+  ],
+  "metadata": { "version": "1.0", "generatedAt": "2026-03-30T12:00:00Z" }
+}</div>
+  </div>
+
+  <div style="margin-top: 40px; padding: 20px; background: #e3f2fd; border-radius: 8px;">
+    <h3 style="color: #1976d2; margin-bottom: 8px;">Implementation Notes</h3>
+    <ul style="margin-left: 20px; color: #333;">
+      <li><strong>19 card types</strong> available (see types.ts for full list)</li>
+      <li><strong>Grid system</strong>: MUI Grid v2 with <code>xs/sm/md/lg</code> breakpoints</li>
+      <li><strong>AI outputs</strong> <code>{ sections: [{ fields: [{ cardType, props }] }] }</code></li>
+      <li><strong>Renderer</strong> maps cardType → React component and spreads props</li>
+      <li>Default grid sizes defined per card type in <code>registry.tsx</code></li>
+    </ul>
+  </div>
+</body>
+</html>

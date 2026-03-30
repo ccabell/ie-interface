@@ -1,0 +1,143 @@
+{
+  "sections": [
+    {
+      "id": "stats",
+      "title": "Statistics",
+      "fields": [
+        { "cardType": "statistic", "props": { "label": "Total Count", "value": "42" } },
+        { "cardType": "statistic", "props": { "label": "Status", "value": "Active" } },
+        { "cardType": "statistic", "props": { "label": "Score", "value": "87%", "tooltip": "Calculated from 5 factors" } },
+        { "cardType": "statistic", "props": { "label": "Duration", "value": "12 min" } }
+      ]
+    },
+    {
+      "id": "overview",
+      "title": "Overview",
+      "fields": [
+        {
+          "cardType": "summary",
+          "grid": { "xs": 12, "md": 8 },
+          "props": {
+            "title": "Summary",
+            "description": "This is a general summary text block. It can contain any description, analysis, or narrative content. The card adapts to whatever content you provide."
+          }
+        },
+        {
+          "cardType": "valueAccordion",
+          "grid": { "xs": 12, "md": 4 },
+          "props": { "title": "Confidence", "value": 78 }
+        }
+      ]
+    },
+    {
+      "id": "lists",
+      "title": "List Examples",
+      "fields": [
+        {
+          "cardType": "list",
+          "grid": { "xs": 12, "md": 4 },
+          "props": { "title": "Bullet List", "items": ["First item", "Second item", "Third item"], "variant": "bullet" }
+        },
+        {
+          "cardType": "list",
+          "grid": { "xs": 12, "md": 4 },
+          "props": { "title": "Numbered List", "items": ["Step one", "Step two", "Step three"], "variant": "numbered" }
+        },
+        {
+          "cardType": "list",
+          "grid": { "xs": 12, "md": 4 },
+          "props": { "title": "Check List", "items": ["Task A", "Task B", "Task C"], "variant": "check" }
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "title": "Data Display",
+      "fields": [
+        {
+          "cardType": "keyValue",
+          "grid": { "xs": 12, "md": 6 },
+          "props": {
+            "title": "Key-Value Pairs",
+            "items": [
+              { "key": "Type", "value": "Category A" },
+              { "key": "Status", "value": "Completed" },
+              { "key": "Priority", "value": "High" },
+              { "key": "Owner", "value": "Team Lead" }
+            ]
+          }
+        },
+        {
+          "cardType": "chips",
+          "grid": { "xs": 12, "md": 6 },
+          "props": {
+            "title": "Tags",
+            "chips": ["Tag One", "Tag Two", "Tag Three", "Tag Four"],
+            "color": "primary"
+          }
+        }
+      ]
+    },
+    {
+      "id": "groups",
+      "title": "Grouped Data",
+      "fields": [
+        {
+          "cardType": "chipGroup",
+          "grid": { "xs": 12, "md": 6 },
+          "props": {
+            "title": "Categorized Tags",
+            "groups": [
+              { "label": "Primary", "chips": ["Alpha", "Beta", "Gamma"], "color": "primary" },
+              { "label": "Secondary", "chips": ["Delta", "Epsilon"], "color": "default" }
+            ]
+          }
+        },
+        {
+          "cardType": "itemList",
+          "grid": { "xs": 12, "md": 6 },
+          "props": {
+            "title": "Items with Status",
+            "items": [
+              { "title": "Item A", "subtitle": "Description of item A", "status": { "label": "Active", "color": "success" } },
+              { "title": "Item B", "snippet": "Supporting quote or detail", "status": { "label": "Pending", "color": "warning" } },
+              { "title": "Item C", "status": { "label": "Inactive", "color": "error" } }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "title": "Evidence Cards",
+      "fields": [
+        { "cardType": "evidence", "grid": { "xs": 12, "md": 4 }, "props": { "title": "Finding 1", "score": 95, "snippet": "This is a high-confidence finding with supporting evidence." } },
+        { "cardType": "evidence", "grid": { "xs": 12, "md": 4 }, "props": { "title": "Finding 2", "score": 72, "snippet": "Medium confidence finding that needs verification." } },
+        { "cardType": "evidence", "grid": { "xs": 12, "md": 4 }, "props": { "title": "Finding 3", "score": 45, "snippet": "Lower confidence observation." } }
+      ]
+    },
+    {
+      "id": "timeline",
+      "title": "Process Timeline",
+      "fields": [
+        {
+          "cardType": "timeline",
+          "grid": { "xs": 12 },
+          "props": {
+            "title": "Workflow Steps",
+            "events": [
+              { "title": "Step 1: Initialize", "description": "Setup and configuration", "status": "completed" },
+              { "title": "Step 2: Process", "description": "Main processing phase", "status": "current" },
+              { "title": "Step 3: Review", "description": "Quality check", "status": "pending" },
+              { "title": "Step 4: Complete", "description": "Finalize and deliver", "status": "pending" }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "description": "Generic demo showing all card types without domain-specific content"
+  }
+}

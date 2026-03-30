@@ -1,0 +1,234 @@
+{
+  "sections": [
+    {
+      "id": "stats",
+      "title": "Statistics Row",
+      "fields": [
+        { "cardType": "statistic", "props": { "label": "Visit Type", "value": "New Patient" } },
+        { "cardType": "statistic", "props": { "label": "Duration", "value": "45 min" } },
+        { "cardType": "statistic", "props": { "label": "Services Discussed", "value": "4" } },
+        { "cardType": "statistic", "props": { "label": "Conversion", "value": "Booked" } }
+      ]
+    },
+    {
+      "id": "summary",
+      "title": "Summary & Scores",
+      "fields": [
+        {
+          "cardType": "summary",
+          "grid": { "xs": 12, "md": 8 },
+          "props": {
+            "title": "Consultation Summary",
+            "description": "Patient presented for initial consultation regarding anti-aging treatments. Strong interest in Botox for forehead lines and crow's feet. Discussed filler options for nasolabial folds. Patient is motivated by upcoming wedding in 6 weeks. Budget concerns were addressed with payment plan options. Scheduled Botox appointment for next week."
+          }
+        },
+        {
+          "cardType": "valueAccordion",
+          "grid": { "xs": 12, "md": 4 },
+          "props": { "title": "Commitment Level", "value": 85 }
+        }
+      ]
+    },
+    {
+      "id": "clinical",
+      "title": "Clinical Assessment",
+      "fields": [
+        {
+          "cardType": "concerns",
+          "props": {
+            "primary": ["Forehead lines", "Crow's feet", "Frown lines"],
+            "secondary": ["Nasolabial folds", "Volume loss"]
+          }
+        },
+        {
+          "cardType": "areas",
+          "props": {
+            "treatmentAreas": ["Forehead", "Glabella", "Periorbital", "Nasolabial"],
+            "concernAreas": ["Upper face", "Mid face"]
+          }
+        },
+        {
+          "cardType": "patientGoals",
+          "props": {
+            "goals": ["Look refreshed for daughter's wedding", "Natural-looking results", "Minimal downtime"],
+            "anticipatedOutcomes": ["Smoother forehead", "Reduced crow's feet", "More youthful appearance"],
+            "statedInterests": ["Botox", "Juvederm", "Skin care regimen"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "products",
+      "title": "Products & Services Discussed",
+      "fields": [
+        {
+          "cardType": "productsServices",
+          "grid": { "xs": 12 },
+          "props": {
+            "items": [
+              { "title": "Botox", "status": "Recommended - receptive", "area": "Forehead, Glabella", "quantity": "40 units", "snippet": "I've been wanting to try Botox for a while now" },
+              { "title": "Juvederm Voluma", "status": "Discussed - considering", "area": "Cheeks", "snippet": "Maybe after I see how the Botox goes" },
+              { "title": "HydraFacial", "status": "Mentioned - hesitant", "area": "Full face", "snippet": "Sounds nice but not right now" },
+              { "title": "SkinMedica TNS", "status": "Recommended - receptive", "area": "Home care", "snippet": "Yes, I'd like to start a good skincare routine" }
+            ],
+            "potentialValue": "$2,450",
+            "potentialValueNote": "Includes Botox, skincare starter kit"
+          }
+        }
+      ]
+    },
+    {
+      "id": "objections",
+      "title": "Objections & Concerns",
+      "fields": [
+        {
+          "cardType": "objections",
+          "grid": { "xs": 12 },
+          "props": {
+            "items": [
+              { "type": "Objection", "status": "Addressed", "title": "Budget concerns", "snippet": "I'm not sure I can afford this right now", "coachingResponse": "Provider offered CareCredit financing with 0% APR for 12 months" },
+              { "type": "Hesitation", "status": "Resolved", "title": "Fear of looking frozen", "snippet": "I don't want to look like I can't move my face", "coachingResponse": "Showed before/after photos of natural results" },
+              { "type": "Concern", "status": "Not addressed", "title": "Downtime before event", "snippet": "Will I be bruised for the wedding?" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "title": "Key Quotes",
+      "fields": [
+        { "cardType": "evidence", "props": { "quote": "I want to look refreshed for my daughter's wedding in 6 weeks.", "speaker": "Patient" } },
+        { "cardType": "evidence", "props": { "quote": "Based on what you've told me, I think we should start with Botox in the forehead and see how you like it.", "speaker": "Provider" } },
+        { "cardType": "evidence", "props": { "quote": "Can we schedule for next week? I'm excited to get started!", "speaker": "Patient" } }
+      ]
+    },
+    {
+      "id": "context",
+      "title": "Visit Context",
+      "fields": [
+        {
+          "cardType": "visitContext",
+          "props": {
+            "visitType": "Initial Consultation",
+            "referredBy": "Friend recommendation",
+            "reasonForVisit": "Anti-aging treatment options",
+            "motivatingEvent": "Daughter's wedding in 6 weeks"
+          }
+        },
+        {
+          "cardType": "visitChecklist",
+          "props": {
+            "items": [
+              { "label": "Greeted patient warmly", "completed": true },
+              { "label": "Reviewed medical history", "completed": true },
+              { "label": "Discussed treatment options", "completed": true },
+              { "label": "Addressed pricing/payment", "completed": true },
+              { "label": "Scheduled follow-up", "completed": true },
+              { "label": "Provided take-home materials", "completed": false, "snippet": "Patient left before receiving brochure" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "nextsteps",
+      "title": "Next Steps",
+      "fields": [
+        {
+          "cardType": "nextSteps",
+          "grid": { "xs": 12, "md": 6 },
+          "props": {
+            "items": [
+              { "title": "Botox appointment", "when": "Next Tuesday 2pm", "owner": "Front desk", "isCompleted": true },
+              { "title": "Send pre-treatment instructions", "when": "3 days before", "owner": "MA", "isCompleted": false },
+              { "title": "Follow-up call", "when": "2 weeks post", "owner": "Provider", "isCompleted": false }
+            ]
+          }
+        },
+        {
+          "cardType": "timeline",
+          "grid": { "xs": 12, "md": 6 },
+          "props": {
+            "title": "Treatment Journey",
+            "events": [
+              { "title": "Initial Consultation", "description": "Discussed goals and treatment plan", "status": "completed" },
+              { "title": "Botox Treatment", "description": "40 units forehead/glabella", "timestamp": "Next Tuesday", "status": "current" },
+              { "title": "2-Week Follow-up", "description": "Assess results, discuss filler", "status": "pending" },
+              { "title": "Filler Consultation", "description": "If interested after Botox", "status": "pending" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "crosssell",
+      "title": "Cross-Sell Analysis",
+      "fields": [
+        {
+          "cardType": "crossSell",
+          "props": {
+            "score": 78,
+            "description": "Provider effectively introduced complementary services (skincare, filler) while staying focused on primary concern. Good balance of education without overwhelming patient."
+          }
+        },
+        {
+          "cardType": "futureInterests",
+          "props": {
+            "items": [
+              { "label": "Dermal Fillers", "priority": "High", "snippet": "Patient mentioned interest after seeing Botox results" },
+              { "label": "Chemical Peel", "priority": "Medium", "snippet": "Discussed as option for skin texture" },
+              { "label": "Laser Treatment", "priority": "Low", "snippet": "Briefly mentioned, patient not interested now" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "generic",
+      "title": "Generic Card Types",
+      "fields": [
+        {
+          "cardType": "list",
+          "props": {
+            "title": "Treatment Benefits",
+            "items": ["Natural-looking results", "Minimal downtime (24-48 hours)", "FDA approved since 2002", "Results last 3-4 months", "Can be adjusted based on preference"],
+            "variant": "check"
+          }
+        },
+        {
+          "cardType": "keyValue",
+          "props": {
+            "title": "Patient Profile",
+            "items": [
+              { "key": "Age", "value": "42" },
+              { "key": "Skin Type", "value": "Fitzpatrick III" },
+              { "key": "Previous Treatments", "value": "None" },
+              { "key": "Allergies", "value": "None reported" }
+            ]
+          }
+        },
+        {
+          "cardType": "chips",
+          "props": {
+            "title": "Treatment Areas",
+            "chips": ["Forehead", "Glabella", "Crow's Feet", "Lateral Brow"],
+            "color": "primary"
+          }
+        },
+        {
+          "cardType": "accordion",
+          "props": {
+            "title": "Patient Engagement Score",
+            "value": 92
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "generatedAt": "2026-03-30T12:00:00Z",
+    "description": "Demo of all 19 card types in the config-driven card renderer"
+  }
+}

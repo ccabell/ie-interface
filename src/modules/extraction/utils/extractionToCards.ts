@@ -478,22 +478,42 @@ export interface RunExtractionResponse {
 }
 
 export function mapRunResponseToCards(response: RunExtractionResponse): MappedCardData | null {
+  console.log('[mapRunResponseToCards] Input:', {
+    hasOutputs: !!response.outputs,
+    outputKeys: response.outputs ? Object.keys(response.outputs) : [],
+    hasPrompt1: !!response.outputs?.prompt_1,
+    hasPrompt1ParsedJson: !!response.outputs?.prompt_1?.parsed_json,
+    hasPrompt2: !!response.outputs?.prompt_2,
+    hasPrompt2ParsedJson: !!response.outputs?.prompt_2?.parsed_json,
+  });
+
   // Check for V3 format (outputs.prompt_1 / prompt_2 structure)
   if (response.outputs?.prompt_1?.parsed_json || response.outputs?.prompt_2?.parsed_json) {
     const p1 = response.outputs.prompt_1?.parsed_json;
     const p2 = response.outputs.prompt_2?.parsed_json;
 
+    console.log('[mapRunResponseToCards] V3 check:', {
+      p1Version: (p1 as unknown as Record<string, unknown>)?.extraction_version,
+      p2Version: (p2 as unknown as Record<string, unknown>)?.extraction_version,
+      p1IsV3: p1 ? isV3Extraction(p1) : false,
+      p2IsV3: p2 ? isV3Extraction(p2) : false,
+    });
+
     // Verify at least one pass is V3
     if ((p1 && isV3Extraction(p1)) || (p2 && isV3Extraction(p2))) {
-      return mapV3ExtractionToCards({
+      console.log('[mapRunResponseToCards] Using V3 mapper');
+      const result = mapV3ExtractionToCards({
         prompt_1: p1 as V3ExtractionPass1 | undefined,
         prompt_2: p2 as V3ExtractionPass2 | undefined,
       });
+      console.log('[mapRunResponseToCards] V3 mapper result:', result);
+      return result;
     }
   }
 
   // Check for legacy format at top level
   if (response.parsed_json) {
+    console.log('[mapRunResponseToCards] Using legacy mapper (top-level parsed_json)');
     const validation = validateExtractionJson(response.parsed_json);
     if (validation.valid && validation.data) {
       return mapExtractionToCards(validation.data);
@@ -502,12 +522,14 @@ export function mapRunResponseToCards(response: RunExtractionResponse): MappedCa
 
   // Check for legacy format in result.parsed_json
   if (response.result?.parsed_json) {
+    console.log('[mapRunResponseToCards] Using legacy mapper (result.parsed_json)');
     const validation = validateExtractionJson(response.result.parsed_json);
     if (validation.valid && validation.data) {
       return mapExtractionToCards(validation.data);
     }
   }
 
+  console.log('[mapRunResponseToCards] No valid extraction found');
   return null;
 }
 

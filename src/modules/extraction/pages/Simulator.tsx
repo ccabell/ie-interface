@@ -226,19 +226,27 @@ export function Simulator() {
   }, [promptMode, selectedPromptSet, selectedPromptTemplate, inputMode, selectedTranscript, selectedRun, selectedPractice]);
 
   function tryMapToCards(output: unknown) {
+    console.log('[Simulator] tryMapToCards called with:', output);
+
     if (!output || typeof output !== 'object') {
+      console.error('[Simulator] Output is not an object');
       setError('Response received but could not parse. Check raw JSON.');
       return;
     }
 
     // First, try the new mapRunResponseToCards which handles both V3 and legacy formats
+    console.log('[Simulator] Attempting mapRunResponseToCards...');
     const mappedCards = mapRunResponseToCards(output as RunExtractionResponse);
+    console.log('[Simulator] mapRunResponseToCards result:', mappedCards);
+
     if (mappedCards) {
+      console.log('[Simulator] Successfully mapped cards');
       setCardData(mappedCards);
       return;
     }
 
     // Fallback: try legacy extraction at top level
+    console.log('[Simulator] Falling back to legacy parsing...');
     const obj = output as Record<string, unknown>;
     let extractionData: ExtractionOutput | null = null;
 
@@ -255,6 +263,7 @@ export function Simulator() {
         setError(validation.error ?? 'Could not validate extraction output.');
       }
     } else {
+      console.error('[Simulator] Could not find extraction fields in:', Object.keys(obj));
       setError('Response received but could not find extraction fields. Check the raw JSON output.');
     }
   }
