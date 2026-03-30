@@ -6,6 +6,10 @@
  * shapes expected by the production Intelligence tab card components.
  *
  * This is the critical bridge between prompt output and UI rendering.
+ *
+ * Supports both:
+ * - Legacy format (flat structure)
+ * - V3 format (nested structure with evidence, split across prompt_1/prompt_2)
  */
 
 import type { ProductItemV2 } from '@/shared/cards/intelligence/ProductsServicesCardV2';
@@ -14,6 +18,7 @@ import type { NextStepItem } from '@/shared/cards/intelligence/NextStepsTimeline
 
 // ─── Raw extraction JSON shape (from the prompt) ───
 
+// Legacy format
 export interface ExtractionOutput {
   summary?: string;
   patient_goals?: string[];
@@ -36,6 +41,122 @@ interface ConcernItem {
   text: string;
   type?: 'Objection' | 'Hesitation' | 'Concern';
   addressed?: boolean;
+}
+
+// ─── V3 Extraction Format Types ───
+
+interface V3Evidence {
+  quote: string;
+  speaker: string;
+  confidence: number;
+}
+
+interface V3ValueWithEvidence<T> {
+  value: T;
+  evidence?: V3Evidence[];
+  missing_reason?: string | null;
+}
+
+interface V3Offering {
+  name: string;
+  type: string;
+  disposition: string;
+  area?: string;
+  quantity?: string;
+  mentioned_value?: number | null;
+  guidance_discovery?: {
+    provider_guided: boolean;
+    guidance_type: string;
+    patient_reception: string;
+    reception_evidence?: string;
+    guidance_rationale?: string;
+  };
+  evidence?: V3Evidence;
+}
+
+interface V3Concern {
+  concern: string;
+  raised_by: string;
+  category: string;
+  addressed: boolean;
+  response?: string;
+  evidence?: V3Evidence;
+}
+
+interface V3NextStep {
+  action: string;
+  timing?: string;
+  owner?: string;
+  evidence?: V3Evidence;
+}
+
+export interface V3ExtractionPass1 {
+  extraction_version: '3.0';
+  pass: 1;
+  visit_context?: {
+    visit_type?: V3ValueWithEvidence<string>;
+    reason_for_visit?: V3ValueWithEvidence<string>;
+    referred_by?: V3ValueWithEvidence<string>;
+    referrals?: V3ValueWithEvidence<string | null>;
+    motivating_event?: V3ValueWithEvidence<string | null>;
+  };
+  patient_goals?: {
+    primary_concern?: V3ValueWithEvidence<string>;
+    secondary_concerns?: V3ValueWithEvidence<string[]>;
+    goals?: V3ValueWithEvidence<string[]>;
+    anticipated_outcomes?: V3ValueWithEvidence<string[]>;
+  };
+  areas?: {
+    treatment_areas?: V3ValueWithEvidence<string[]>;
+    concern_areas?: V3ValueWithEvidence<string[]>;
+  };
+  interests?: {
+    stated_interests?: V3ValueWithEvidence<string[]>;
+    future_interests?: V3ValueWithEvidence<string[] | null>;
+  };
+  offerings?: V3Offering[];
+}
+
+export interface V3ExtractionPass2 {
+  extraction_version: '3.0';
+  pass: 2;
+  signal_tags?: string[];
+  intent_score?: V3ValueWithEvidence<number>;
+  sentiment_final?: V3ValueWithEvidence<number>;
+  sentiment_trajectory?: V3ValueWithEvidence<number[]>;
+  outcome?: {
+    status?: V3ValueWithEvidence<string>;
+    summary?: V3ValueWithEvidence<string>;
+  };
+  next_steps?: V3NextStep[];
+  patient_signals?: {
+    commitment_level?: V3ValueWithEvidence<string>;
+  };
+  objections?: V3Concern[];
+  hesitations?: V3Concern[];
+  concerns?: V3Concern[];
+  visit_checklist?: Array<{
+    item_id: string;
+    item_label: string;
+    category: string;
+    completed: boolean;
+    evidence?: V3Evidence;
+  }>;
+}
+
+export interface V3CombinedExtraction {
+  prompt_1?: V3ExtractionPass1;
+  prompt_2?: V3ExtractionPass2;
+}
+
+// Type guard for V3 format
+export function isV3Extraction(obj: unknown): obj is V3ExtractionPass1 | V3ExtractionPass2 {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'extraction_version' in obj &&
+    (obj as Record<string, unknown>).extraction_version === '3.0'
+  );
 }
 
 // ─── Mapped card props ───
@@ -100,6 +221,134 @@ function interestToStatus(interest?: string, status?: string): ProductItemV2['st
     default:
       return 'Discussed - considering';
   }
+}
+
+// ─── V3 disposition to status mapping ───
+
+function dispositionToStatus(disposition: string, reception?: string): ProductItemV2['status'] {
+  if (disposition === 'performed' || disposition === 'scheduled' || reception === 'engaged') {
+    return 'Recommended - receptive';
+  }
+  if (disposition === 'recommended' || reception === 'receptive') {
+    return 'Discussed - considering';
+  }
+  if (disposition === 'mentioned' || reception === 'hesitant') {
+    return 'Mentioned - hesitant';
+  }
+  return 'Discussed - considering';
+}
+
+// ─── Map V3 combined extraction to MappedCardData ───
+
+export function mapV3ExtractionToCards(combined: V3CombinedExtraction): MappedCardData {
+  const p1 = combined.prompt_1;
+  const p2 = combined.prompt_2;
+
+  // Extract summary from prompt_2's outcome
+  const summary = p2?.outcome?.summary?.value ?? '';
+
+  // Extract patient goals from prompt_1
+  const goalsArray = p1?.patient_goals?.goals?.value ?? [];
+  const primaryConcern = p1?.patient_goals?.primary_concern?.value;
+  const patientGoals = primaryConcern ? [primaryConcern, ...goalsArray] : goalsArray;
+
+  // Extract anticipated outcomes
+  const anticipatedOutcomes = p1?.patient_goals?.anticipated_outcomes?.value ?? [];
+
+  // Extract stated interests
+  const statedInterests = p1?.interests?.stated_interests?.value ?? [];
+
+  // Map offerings to treatments
+  const offerings = p1?.offerings ?? [];
+  const treatments: ProductItemV2[] = offerings.map((o) => ({
+    title: o.name,
+    status: dispositionToStatus(o.disposition, o.guidance_discovery?.patient_reception),
+    area: o.area,
+    snippet: o.evidence?.quote ?? o.guidance_discovery?.reception_evidence,
+  }));
+
+  // Map concerns/objections/hesitations from prompt_2
+  const allConcerns: ObjectionItem[] = [];
+
+  for (const c of p2?.objections ?? []) {
+    allConcerns.push({
+      type: 'Objection',
+      status: c.addressed ? 'Addressed' : 'Not addressed',
+      title: c.concern,
+      snippet: c.evidence?.quote ?? c.response ?? '',
+    });
+  }
+  for (const c of p2?.hesitations ?? []) {
+    allConcerns.push({
+      type: 'Hesitation',
+      status: c.addressed ? 'Addressed' : 'Not addressed',
+      title: c.concern,
+      snippet: c.evidence?.quote ?? c.response ?? '',
+    });
+  }
+  for (const c of p2?.concerns ?? []) {
+    allConcerns.push({
+      type: 'Concern',
+      status: c.addressed ? 'Addressed' : 'Not addressed',
+      title: c.concern,
+      snippet: c.evidence?.quote ?? c.response ?? '',
+    });
+  }
+
+  // Map next steps from prompt_2
+  const nextSteps: NextStepItem[] = (p2?.next_steps ?? []).map((ns) => ({
+    title: ns.action,
+    when: ns.timing ?? '',
+    owner: ns.owner ?? '',
+  }));
+
+  // Calculate commitment score (V3 uses 0-1 scale, we need 0-100)
+  const intentScore = p2?.intent_score?.value ?? 0.5;
+  const commitmentScore = Math.round(intentScore * 100);
+
+  // Map sentiment (V3 uses 0-1 scale)
+  const sentimentValue = p2?.sentiment_final?.value ?? 0.5;
+  let sentiment: 'positive' | 'neutral' | 'negative' | 'unclear';
+  if (sentimentValue >= 0.7) {
+    sentiment = 'positive';
+  } else if (sentimentValue >= 0.4) {
+    sentiment = 'neutral';
+  } else if (sentimentValue >= 0.2) {
+    sentiment = 'negative';
+  } else {
+    sentiment = 'unclear';
+  }
+
+  return {
+    generalSummary: {
+      description: summary,
+      stats: [],
+      commitmentLevel: commitmentScore,
+      sentiment,
+    },
+    patientGoals: {
+      goals: patientGoals,
+      anticipatedOutcomes,
+      statedInterests,
+    },
+    productsServices: {
+      items: treatments,
+    },
+    objections: {
+      items: allConcerns,
+    },
+    nextSteps: {
+      items: nextSteps,
+    },
+    isEmpty: {
+      summary: !summary,
+      patientGoals: patientGoals.length === 0,
+      treatments: treatments.length === 0,
+      concerns: allConcerns.length === 0,
+      nextSteps: nextSteps.length === 0,
+      commitmentScore: intentScore === 0.5 && sentimentValue === 0.5,
+    },
+  };
 }
 
 // ─── Main mapping function ───
@@ -189,6 +438,77 @@ export function validateExtractionJson(json: unknown): { valid: boolean; error?:
   }
 
   return { valid: true, data: obj as ExtractionOutput };
+}
+
+// ─── V3 JSON validation ───
+
+export function validateV3ExtractionJson(json: unknown): { valid: boolean; error?: string; data?: V3ExtractionPass1 | V3ExtractionPass2 } {
+  if (typeof json !== 'object' || json === null) {
+    return { valid: false, error: 'Expected a JSON object, got ' + typeof json };
+  }
+
+  const obj = json as Record<string, unknown>;
+
+  // Check for V3 signature fields
+  if (obj.extraction_version !== '3.0') {
+    return { valid: false, error: 'Not a V3 extraction (missing extraction_version: "3.0")' };
+  }
+
+  const pass = obj.pass;
+  if (pass !== 1 && pass !== 2) {
+    return { valid: false, error: 'V3 extraction must have pass: 1 or pass: 2' };
+  }
+
+  return { valid: true, data: obj as unknown as V3ExtractionPass1 | V3ExtractionPass2 };
+}
+
+// ─── Combined extraction from full API response ───
+
+export interface RunExtractionResponse {
+  id: string;
+  run_id: string;
+  status: string;
+  outputs?: {
+    prompt_1?: { parsed_json?: V3ExtractionPass1 };
+    prompt_2?: { parsed_json?: V3ExtractionPass2 };
+  };
+  // Legacy format fields (might be at top level)
+  parsed_json?: ExtractionOutput;
+  result?: { parsed_json?: ExtractionOutput };
+}
+
+export function mapRunResponseToCards(response: RunExtractionResponse): MappedCardData | null {
+  // Check for V3 format (outputs.prompt_1 / prompt_2 structure)
+  if (response.outputs?.prompt_1?.parsed_json || response.outputs?.prompt_2?.parsed_json) {
+    const p1 = response.outputs.prompt_1?.parsed_json;
+    const p2 = response.outputs.prompt_2?.parsed_json;
+
+    // Verify at least one pass is V3
+    if ((p1 && isV3Extraction(p1)) || (p2 && isV3Extraction(p2))) {
+      return mapV3ExtractionToCards({
+        prompt_1: p1 as V3ExtractionPass1 | undefined,
+        prompt_2: p2 as V3ExtractionPass2 | undefined,
+      });
+    }
+  }
+
+  // Check for legacy format at top level
+  if (response.parsed_json) {
+    const validation = validateExtractionJson(response.parsed_json);
+    if (validation.valid && validation.data) {
+      return mapExtractionToCards(validation.data);
+    }
+  }
+
+  // Check for legacy format in result.parsed_json
+  if (response.result?.parsed_json) {
+    const validation = validateExtractionJson(response.result.parsed_json);
+    if (validation.valid && validation.data) {
+      return mapExtractionToCards(validation.data);
+    }
+  }
+
+  return null;
 }
 
 // ─── Sample extraction JSON (from PDF spec) ───

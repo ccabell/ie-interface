@@ -32,9 +32,11 @@ import ScienceIcon from '@mui/icons-material/Science';
 import { IntelligenceRenderer } from '@/modules/extraction/components/IntelligenceRenderer';
 import {
   mapExtractionToCards,
+  mapRunResponseToCards,
   validateExtractionJson,
   type MappedCardData,
   type ExtractionOutput,
+  type RunExtractionResponse,
 } from '@/modules/extraction/utils/extractionToCards';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { client as apiClient } from '@/shared/api/client';
@@ -229,25 +231,20 @@ export function Simulator() {
       return;
     }
 
+    // First, try the new mapRunResponseToCards which handles both V3 and legacy formats
+    const mappedCards = mapRunResponseToCards(output as RunExtractionResponse);
+    if (mappedCards) {
+      setCardData(mappedCards);
+      return;
+    }
+
+    // Fallback: try legacy extraction at top level
     const obj = output as Record<string, unknown>;
     let extractionData: ExtractionOutput | null = null;
 
     // Try various response shapes
-    if (obj.parsed_json) {
-      extractionData = obj.parsed_json as ExtractionOutput;
-    } else if ((obj.result as Record<string, unknown>)?.parsed_json) {
-      extractionData = (obj.result as Record<string, unknown>).parsed_json as ExtractionOutput;
-    } else if (obj.summary || obj.patient_goals || obj.treatments_discussed) {
+    if (obj.summary || obj.patient_goals || obj.treatments_discussed) {
       extractionData = obj as ExtractionOutput;
-    } else if (obj.outputs && typeof obj.outputs === 'object') {
-      const outputs = obj.outputs as Record<string, Record<string, unknown>>;
-      for (const key of ['prompt_1', 'prompt_2', 'prompt_3']) {
-        const pass = outputs[key];
-        if (pass?.parsed_json) {
-          extractionData = pass.parsed_json as ExtractionOutput;
-          break;
-        }
-      }
     }
 
     if (extractionData) {
